@@ -18,22 +18,26 @@ public class ProdutosController : ControllerBase
    [HttpGet]
     public async Task<ActionResult<IEnumerable<Produto>>> Get()
     {
-        var produtos = await _context.Produtos.ToListAsync();
+        var produtos = await _context.Produtos.AsNoTracking().ToListAsync();
+
         if (produtos is null)
         {
             return NotFound();
         }
+
         return produtos;
     }
 
     [HttpGet("{id}", Name = "ObterProduto")]
     public async Task<ActionResult<Produto>> Get(int id)
     {
-        var produto = await _context.Produtos.FirstOrDefaultAsync(p => p.ProdutoId == id);
+        var produto = await _context.Produtos.AsNoTracking().FirstOrDefaultAsync(p => p.ProdutoId == id);
+
         if (produto is null)
         {
             return NotFound("Produto não encontrado...");
         }
+
         return produto;
     }
 
@@ -68,7 +72,6 @@ public class ProdutosController : ControllerBase
     public ActionResult Delete(int id)
     {
         var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
-        //var produto = _context.Produtos.Find(id);
 
         if (produto is null)
         {
