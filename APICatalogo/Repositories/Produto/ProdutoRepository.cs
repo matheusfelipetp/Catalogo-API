@@ -1,68 +1,14 @@
-﻿
-using APICatalogo.Context;
-using Microsoft.EntityFrameworkCore;
+﻿using APICatalogo.Context;
 
 namespace APICatalogo.Repositories.Produto
 {
-    public class ProdutoRepository : IProdutoRepository
+    public class ProdutoRepository : Repository<Models.Produto>, IProdutoRepository
     {
-        private readonly AppDbContext _context;
+        public ProdutoRepository(AppDbContext context) : base(context) { }
 
-        public ProdutoRepository(AppDbContext context)
+        public IEnumerable<Models.Produto> GetProdutosPorCategoria(int id)
         {
-            _context = context;
-        }
-
-        public IEnumerable<Models.Produto> GetProdutos()
-        {
-            return _context.Produtos.AsNoTracking().ToList();
-        }
-
-        public Models.Produto GetProduto(int id)
-        {
-            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId  == id);
-
-            if (produto is null)
-            {
-                throw new ArgumentNullException("Produto não encontrado");
-            }
-
-            return produto;
-        }
-
-        public Models.Produto Create(Models.Produto produto)
-        {
-            if (produto is null)
-            {
-                throw new InvalidOperationException("Dados inválidos");
-            }
-
-            _context.Produtos.Add(produto);
-            _context.SaveChanges();
-
-            return produto;
-        }
-
-        public Models.Produto Update(Models.Produto produto)
-        {
-            if (produto is null)
-                throw new ArgumentNullException(nameof(produto));
-
-            _context.Entry(produto).State = EntityState.Modified;
-            _context.SaveChanges();
-
-            return produto;
-        }
-
-        public void Delete(int id)
-        {
-            var produto = _context.Produtos.Find(id);
-
-            if (produto is null)
-                throw new ArgumentNullException(nameof(produto));
-
-            _context.Produtos.Remove(produto);
-            _context.SaveChanges();
+            return GetAll().Where(c => c.CategoriaId == id);
         }
     }
 }

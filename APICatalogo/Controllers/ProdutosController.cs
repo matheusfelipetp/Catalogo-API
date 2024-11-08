@@ -8,23 +8,37 @@ namespace APICatalogo.Controllers;
 [ApiController]
 public class ProdutosController : ControllerBase
 {
-    private readonly IProdutoRepository _repository;
-    public ProdutosController(IProdutoRepository repository)
+    private readonly IProdutoRepository _produtoRepository;
+
+    public ProdutosController(IProdutoRepository produtoRepository)
     {
-        _repository = repository;
+        _produtoRepository = produtoRepository;
+    }
+
+    [HttpGet("produtos/{id}")]
+    public ActionResult<IEnumerable<Produto>> GetProdutosCategoria(int id)
+    {
+       var produtos = _produtoRepository.GetProdutosPorCategoria(id);
+
+       if (produtos is null)
+        {
+            return NotFound("Produtos não encontrados para essa categoria");
+        }
+
+       return Ok(produtos);
     }
 
    [HttpGet]
     public ActionResult<IEnumerable<Produto>> Get()
     {
-        var produtos = _repository.GetProdutos();
+        var produtos = _produtoRepository.GetAll();
         return Ok(produtos);
     }
 
     [HttpGet("{id}", Name = "ObterProduto")]
     public ActionResult<Produto> Get(int id)
     {
-        var produto = _repository.GetProduto(id);
+        var produto = _produtoRepository.Get(p => p.ProdutoId == id);
 
         if (produto is null)
         {
@@ -42,7 +56,7 @@ public class ProdutosController : ControllerBase
             return BadRequest();
         }
 
-        var produtoCriado = _repository.Create(produto);
+        var produtoCriado = _produtoRepository.Create(produto);
 
         return new CreatedAtRouteResult("ObterProduto",
             new { id = produtoCriado.ProdutoId }, produtoCriado);
@@ -56,14 +70,21 @@ public class ProdutosController : ControllerBase
             return BadRequest();
         }
 
-        _repository.Update(produto);
-        return Ok(produto);
+        var produtoAtualizado = _produtoRepository.Update(produto);
+        return Ok(produtoAtualizado);
     }
 
     [HttpDelete("{id:int}")]
     public ActionResult Delete(int id)
     {
-        _repository.Delete(id);
-        return Ok();
+        var produto = _produtoRepository.Get(p => p.ProdutoId == id);
+
+        if (produto is null)
+        {
+            return NotFound("Produto não encontrado");
+        }
+
+        var produtoDeletado = _produtoRepository.Delete(produto);
+        return Ok(produtoDeletado);
     }
 }
