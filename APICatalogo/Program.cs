@@ -1,4 +1,5 @@
 using APICatalogo.Context;
+using APICatalogo.DTOs.Mappings;
 using APICatalogo.Filters;
 using APICatalogo.Logging;
 using APICatalogo.Repositories;
@@ -21,7 +22,7 @@ builder.Services.AddControllers(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-string stringConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+string stringConnection = builder.Configuration.GetConnectionString("DefaultConnection")!;
 
 builder.Services.AddDbContext<AppDbContext>(options =>
                     options.UseSqlServer(stringConnection));
@@ -36,6 +37,9 @@ builder.Logging.AddProvider(new CustomLoggerProvider(new CustomLoggerProviderCon
 {
     LogLevel = LogLevel.Information
 }));
+
+builder.Services.AddAutoMapper(typeof(ProdutoDTOMappingProfile));
+builder.Services.AddAutoMapper(typeof(CategoriaDTOMappingProfile));
 
 var app = builder.Build();
 
