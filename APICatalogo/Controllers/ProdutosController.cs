@@ -1,9 +1,11 @@
 ﻿using APICatalogo.DTOs;
 using APICatalogo.Models;
+using APICatalogo.Pagination;
 using APICatalogo.Repositories.UnitOfWork;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace APICatalogo.Controllers;
 
@@ -20,6 +22,25 @@ public class ProdutosController : ControllerBase
         _mapper = mapper;
     }
 
+    private ActionResult<IEnumerable<ProdutoDTO>> OberProdutos(PagedList<Produto> produtos)
+    {
+        var metadata = new
+        {
+            produtos.TotalCount,
+            produtos.PageSize,
+            produtos.CurrentPage,
+            produtos.TotalPages,
+            produtos.HasNext,
+            produtos.HasPrevious
+        };
+
+        Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
+
+        var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
+
+        return Ok(produtosDto);
+    }
+
     [HttpGet("categorias/{id}")]
     public ActionResult<IEnumerable<ProdutoDTO>> GetProdutosCategoria(int id)
     {
@@ -29,7 +50,21 @@ public class ProdutosController : ControllerBase
        return Ok(produtosDto);
     }
 
-   [HttpGet]
+    [HttpGet("pagination")]
+    public ActionResult<IEnumerable<ProdutoDTO>> GetProdutosPagination([FromQuery] ProdutosParameters produtosParameters)
+    {
+        var produtos = _unitOfWork.ProdutoRepository.GetProdutos(produtosParameters);
+        return OberProdutos(produtos);
+    }
+
+    [HttpGet("filter/preco/pagination")]
+    public ActionResult<IEnumerable<ProdutoDTO>> GetProdutosFiltroPreco([FromQuery] ProdutosFiltroPreco produtosFiltroPreco)
+    {
+        var produtos = _unitOfWork.ProdutoRepository.GetProdutosFiltroPreco(produtosFiltroPreco);
+        return OberProdutos(produtos);
+    }
+
+    [HttpGet]
     public ActionResult<IEnumerable<ProdutoDTO>> Get()
     {
         var produtos = _unitOfWork.ProdutoRepository.GetAll();
